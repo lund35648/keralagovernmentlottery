@@ -194,7 +194,7 @@ to{transform:translateY(100vh) rotate(720deg);}
 
 <script>
 const TICKET_PRICE=149;
-const WHATSAPP_NUMBER="918298558752"; // ← अपना नंबर यहाँ बदल सकते हैं
+const WHATSAPP_NUMBER="918298558752";
 
 const ticket=document.getElementById("ticket");
 const amount=document.getElementById("amount");
@@ -207,7 +207,6 @@ const ticketAmount=document.getElementById("ticketAmount");
 let generatedFreeTickets=[];
 let hasCelebrated=false;
 
-/* Generate Tickets */
 for(let i=0;i<500;i++){
  let n=("000000"+Math.floor(Math.random()*999999)).slice(-6);
  let o=document.createElement("option");
@@ -274,7 +273,6 @@ mobileI.addEventListener("input",e=>{
  refresh();
 });
 
-/* WhatsApp Send */
 submitBtn.addEventListener("click",function(){
  let sel=[...ticket.selectedOptions];
  let paidTickets=sel.length;
@@ -300,19 +298,16 @@ Amount: ₹ ${paidTickets*TICKET_PRICE}`;
  window.open("https://wa.me/"+WHATSAPP_NUMBER+"?text="+encodeURIComponent(msg),"_blank");
 });
 
-/* Celebration */
 function showCelebration(ticketNumber){
  document.getElementById("luckyText").innerHTML=
  "Your Selected Ticket: <b>"+ticketNumber+"</b><br>Best of Luck!";
-
  document.getElementById("modal").style.display="flex";
 
  for(let i=0;i<60;i++){
    let c=document.createElement("div");
    c.className="confetti";
    c.style.left=Math.random()*100+"vw";
-   c.style.backgroundColor=
-   "hsl("+Math.random()*360+",100%,50%)";
+   c.style.backgroundColor="hsl("+Math.random()*360+",100%,50%)";
    document.body.appendChild(c);
    setTimeout(()=>c.remove(),3000);
  }
@@ -322,7 +317,6 @@ function closeModal(){
  document.getElementById("modal").style.display="none";
 }
 
-/* Countdown */
 let totalSeconds=20*60;
 const countdown=document.getElementById("countdown");
 const timerBox=document.getElementById("timerBox");
@@ -345,24 +339,41 @@ const timer=setInterval(()=>{
  }
 },1000);
 
-/* Live Popup */
-const names=["Manjunath","Shivakumar","Raghavendra","Basavaraj"];
-const cities=["Bengaluru","Mysuru","Hubballi"];
+/* 50+ Karnataka Names */
+const names=[
+"Manjunath","Shivakumar","Raghavendra","Basavaraj","Mahesh","Prakash","Siddappa","Hanumanth","Nagaraj","Ramesh",
+"Suresh","Girish","Venkatesh","Santosh","Rohith","Darshan","Yash","Ganesh","Harsha","Tejas",
+"Karthik","Arjun","Naveen","Lokesh","Deepak","Shankar","Mallikarjun","Channappa","Ravi","Umesh",
+"Anil","Dinesh","Vijay","Raghu","Vinay","Shwetha","Divya","Aishwarya","Pooja","Nandini",
+"Meghana","Lakshmi","Soumya","Tejaswini","Keerthi","Anjali","Priya","Bhavana","Kavya","Sneha",
+"Chaitra","Shruthi","Preethi","Ranjitha","Varsha"
+];
+
+const cities=[
+"Bengaluru","Mysuru","Hubballi","Mangaluru","Belagavi",
+"Shivamogga","Tumakuru","Davangere","Udupi","Ballari",
+"Hassan","Mandya","Kolar","Chikkamagaluru","Vijayapura"
+];
+
 function maskMobile(){
  return "9"+Math.floor(100+Math.random()*900)+"****"+Math.floor(10+Math.random()*90);
 }
+
 function showLive(){
  let n=names[Math.floor(Math.random()*names.length)];
  let c=cities[Math.floor(Math.random()*cities.length)];
  let m=maskMobile();
  let t=Math.floor(Math.random()*5)+1;
+
  document.getElementById("liveText").innerHTML=
  "<span class='liveName'>"+n+"</span> ("+m+") from "+c+
  " just booked "+t+" tickets 🎟🔥";
+
  let p=document.getElementById("livePopup");
  p.classList.add("show");
  setTimeout(()=>p.classList.remove("show"),2000);
 }
+
 setTimeout(showLive,3000);
 setInterval(showLive,4000);
 </script>
