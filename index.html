@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Kerala Government Ticket</title>
+<title>Kerala Lucky Draw 2026</title>
 
 <style>
 body{
@@ -13,6 +13,7 @@ font-family:Arial,sans-serif;
 display:flex;
 justify-content:center;
 padding:10px;
+overflow-x:hidden;
 }
 .container{
 width:100%;
@@ -30,20 +31,23 @@ border-radius:12px;
 text-align:center;
 margin-bottom:10px;
 }
-input,select,button{
-width:100%;
-padding:10px;
-margin-bottom:8px;
+.timerBox{
+background:#fff3cd;
+color:#856404;
+padding:8px;
 border-radius:8px;
-border:1px solid #ddd;
-font-size:13px;
+text-align:center;
+font-weight:bold;
+margin-bottom:8px;
+transition:.3s;
 }
-.ticketBox{
-border:2px dashed #ff4f79;
-border-radius:12px;
-padding:10px;
-background:#fff7fa;
+.timerBox.danger{
+background:#ffdddd;
+color:#b30000;
+animation:blink 1s infinite;
 }
+@keyframes blink{50%{opacity:.5;}}
+
 .ticketAmount{
 background:#e8f5e9;
 color:#1b5e20;
@@ -54,7 +58,17 @@ font-weight:bold;
 margin-bottom:6px;
 font-size:13px;
 }
+
+input,select,button{
+width:100%;
+padding:10px;
+margin-bottom:8px;
+border-radius:8px;
+border:1px solid #ddd;
+font-size:13px;
+}
 select[multiple]{height:90px;}
+
 .tag{
 display:inline-block;
 padding:6px 10px;
@@ -62,7 +76,6 @@ border-radius:20px;
 margin:4px 4px 0 0;
 font-size:12px;
 font-weight:bold;
-position:relative;
 }
 .tag span{
 margin-left:6px;
@@ -71,19 +84,16 @@ color:red;
 }
 .paid{background:#ffd6e0;color:#c2185b;}
 .free{background:#d0f0ff;color:#006064;}
+
 button{
 background:linear-gradient(90deg,#ff1744,#d50000);
 color:#fff;
 border:none;
 font-weight:bold;
 cursor:pointer;
-font-size:15px;
-padding:12px;
-border-radius:10px;
 }
 button:disabled{opacity:.5;}
 
-/* Live Popup */
 #livePopup{
 position:fixed;
 bottom:80px;
@@ -108,6 +118,40 @@ from{opacity:0;transform:translateY(30px);}
 to{opacity:1;transform:translateY(0);}
 }
 .liveName{font-weight:bold;color:#0b6b3a;}
+
+#modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.6);
+display:none;
+justify-content:center;
+align-items:center;
+z-index:10000;
+}
+#modalContent{
+background:#fff;
+padding:20px;
+border-radius:16px;
+text-align:center;
+width:90%;
+max-width:320px;
+animation:pop .4s ease;
+}
+@keyframes pop{
+from{transform:scale(.5);opacity:0;}
+to{transform:scale(1);opacity:1;}
+}
+
+.confetti{
+position:fixed;
+width:10px;
+height:10px;
+top:-10px;
+animation:fall 3s linear forwards;
+}
+@keyframes fall{
+to{transform:translateY(100vh) rotate(720deg);}
+}
 </style>
 </head>
 
@@ -119,40 +163,52 @@ to{opacity:1;transform:translateY(0);}
 <p>🔥 Buy 2 Get 1 FREE Offer 🔥</p>
 </div>
 
+<div class="timerBox" id="timerBox">
+⏳ Offer closes in: <span id="countdown">20:00</span>
+</div>
+
 <input id="name" placeholder="Full Name">
 <input id="mobile" placeholder="Mobile Number">
 
-<div class="ticketBox">
 <div class="ticketAmount" id="ticketAmount">
 💰 Select tickets
 </div>
-<select id="ticket" multiple></select>
-</div>
 
+<select id="ticket" multiple></select>
 <div id="selectedTickets"></div>
+
 <input id="amount" placeholder="Total Amount (₹)" readonly>
 <button id="submitBtn" disabled>Submit & Continue</button>
 
 </div>
 
-<div id="livePopup">
-<div id="liveText"></div>
+<div id="livePopup"><div id="liveText"></div></div>
+
+<div id="modal">
+<div id="modalContent">
+<h2 style="color:#ff1744;">🎉 Ticket Added Successfully!</h2>
+<p id="luckyText"></p>
+<button onclick="closeModal()">Continue</button>
+</div>
 </div>
 
 <script>
 const TICKET_PRICE=149;
+const WHATSAPP_NUMBER="918298558752"; // ← अपना नंबर यहाँ बदल सकते हैं
 
-const ticket=document.getElementById("ticket"),
-amount=document.getElementById("amount"),
-ticketAmount=document.getElementById("ticketAmount"),
-submitBtn=document.getElementById("submitBtn"),
-nameI=document.getElementById("name"),
-mobileI=document.getElementById("mobile"),
-selectedDiv=document.getElementById("selectedTickets");
+const ticket=document.getElementById("ticket");
+const amount=document.getElementById("amount");
+const submitBtn=document.getElementById("submitBtn");
+const nameI=document.getElementById("name");
+const mobileI=document.getElementById("mobile");
+const selectedDiv=document.getElementById("selectedTickets");
+const ticketAmount=document.getElementById("ticketAmount");
 
 let generatedFreeTickets=[];
+let hasCelebrated=false;
 
-for(let i=0;i<2000;i++){
+/* Generate Tickets */
+for(let i=0;i<500;i++){
  let n=("000000"+Math.floor(Math.random()*999999)).slice(-6);
  let o=document.createElement("option");
  o.value="KL"+n;
@@ -160,34 +216,33 @@ for(let i=0;i<2000;i++){
  ticket.appendChild(o);
 }
 
-function generateFreeTicket(){
- let n=("000000"+Math.floor(Math.random()*999999)).slice(-6);
- return "KL"+n;
-}
-
 function refresh(){
  let sel=[...ticket.selectedOptions];
  selectedDiv.innerHTML="";
  generatedFreeTickets=[];
 
- let paidTickets=sel.length;
- let freeCount=Math.floor(paidTickets/2);
- let totalAmount=paidTickets*TICKET_PRICE;
- let totalTickets=paidTickets+freeCount;
+ let paid=sel.length;
+ let free=Math.floor(paid/2);
+ let total=paid*TICKET_PRICE;
+ let totalTickets=paid+free;
 
- if(paidTickets>=1){
-   amount.value="₹ "+totalAmount;
+ if(paid>=1){
+   amount.value="₹ "+total;
    ticketAmount.textContent=
-   "Paid: "+paidTickets+
-   " | Free: "+freeCount+
+   "Paid: "+paid+" | Free: "+free+
    " | Total: "+totalTickets+
-   " | Amount: ₹ "+totalAmount;
+   " | Amount: ₹ "+total;
+
+   if(!hasCelebrated){
+     showCelebration(sel[0].value);
+     hasCelebrated=true;
+   }
  }else{
    amount.value="";
    ticketAmount.textContent="💰 Select tickets";
+   hasCelebrated=false;
  }
 
- // Paid tickets with remove option
  sel.forEach(option=>{
    let tag=document.createElement("div");
    tag.className="tag paid";
@@ -199,9 +254,8 @@ function refresh(){
    selectedDiv.appendChild(tag);
  });
 
- // Free tickets
- for(let i=0;i<freeCount;i++){
-   let freeTicket=generateFreeTicket();
+ for(let i=0;i<free;i++){
+   let freeTicket="KL"+("000000"+Math.floor(Math.random()*999999)).slice(-6);
    generatedFreeTickets.push(freeTicket);
 
    let tag=document.createElement("div");
@@ -210,18 +264,18 @@ function refresh(){
    selectedDiv.appendChild(tag);
  }
 
- submitBtn.disabled = !(paidTickets>=1 && nameI.value.trim().length>0 && mobileI.value.trim().length>=10);
+ submitBtn.disabled=!(paid>=1 && nameI.value.trim() && mobileI.value.length>=10);
 }
 
 ticket.addEventListener("change",refresh);
 nameI.addEventListener("input",refresh);
-mobileI.addEventListener("input",function(){
- mobileI.value = mobileI.value.replace(/\D/g,'');
+mobileI.addEventListener("input",e=>{
+ e.target.value=e.target.value.replace(/\D/g,'');
  refresh();
 });
 
+/* WhatsApp Send */
 submitBtn.addEventListener("click",function(){
-
  let sel=[...ticket.selectedOptions];
  let paidTickets=sel.length;
  let freeCount=Math.floor(paidTickets/2);
@@ -243,32 +297,74 @@ ${freeList}
 Total Tickets: ${totalTickets}
 Amount: ₹ ${paidTickets*TICKET_PRICE}`;
 
- window.open("https://wa.me/+918298558752?text="+encodeURIComponent(msg),"_blank");
+ window.open("https://wa.me/"+WHATSAPP_NUMBER+"?text="+encodeURIComponent(msg),"_blank");
 });
 
-/* LIVE BOOKING POPUP */
+/* Celebration */
+function showCelebration(ticketNumber){
+ document.getElementById("luckyText").innerHTML=
+ "Your Selected Ticket: <b>"+ticketNumber+"</b><br>Best of Luck!";
 
-const liveNames=["Arjun","Karthik","Ramesh","Lakshmi","Anjali","Priya","Vijay","Naveen"];
-const liveCities=["Bengaluru","Chennai","Hyderabad","Kochi","Mysuru","Madurai"];
+ document.getElementById("modal").style.display="flex";
 
-function showLivePopup(){
- let name=liveNames[Math.floor(Math.random()*liveNames.length)];
- let city=liveCities[Math.floor(Math.random()*liveCities.length)];
- let paid=Math.floor(Math.random()*5)+1;
- let free=Math.floor(paid/2);
- let total=paid+free;
-
- document.getElementById("liveText").innerHTML=
- "<span class='liveName'>"+name+"</span> from "+city+
- " just booked "+total+" tickets 🎟🔥";
-
- let popup=document.getElementById("livePopup");
- popup.classList.add("show");
- setTimeout(()=>popup.classList.remove("show"),2000);
+ for(let i=0;i<60;i++){
+   let c=document.createElement("div");
+   c.className="confetti";
+   c.style.left=Math.random()*100+"vw";
+   c.style.backgroundColor=
+   "hsl("+Math.random()*360+",100%,50%)";
+   document.body.appendChild(c);
+   setTimeout(()=>c.remove(),3000);
+ }
 }
 
-setTimeout(showLivePopup,2000);
-setInterval(showLivePopup,2000);
+function closeModal(){
+ document.getElementById("modal").style.display="none";
+}
+
+/* Countdown */
+let totalSeconds=20*60;
+const countdown=document.getElementById("countdown");
+const timerBox=document.getElementById("timerBox");
+
+const timer=setInterval(()=>{
+ totalSeconds--;
+ let m=Math.floor(totalSeconds/60);
+ let s=totalSeconds%60;
+ countdown.textContent=
+ (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+
+ if(totalSeconds<=120){
+   timerBox.classList.add("danger");
+ }
+
+ if(totalSeconds<=0){
+   clearInterval(timer);
+   submitBtn.disabled=true;
+   alert("⚠️ Offer Closed!");
+ }
+},1000);
+
+/* Live Popup */
+const names=["Manjunath","Shivakumar","Raghavendra","Basavaraj"];
+const cities=["Bengaluru","Mysuru","Hubballi"];
+function maskMobile(){
+ return "9"+Math.floor(100+Math.random()*900)+"****"+Math.floor(10+Math.random()*90);
+}
+function showLive(){
+ let n=names[Math.floor(Math.random()*names.length)];
+ let c=cities[Math.floor(Math.random()*cities.length)];
+ let m=maskMobile();
+ let t=Math.floor(Math.random()*5)+1;
+ document.getElementById("liveText").innerHTML=
+ "<span class='liveName'>"+n+"</span> ("+m+") from "+c+
+ " just booked "+t+" tickets 🎟🔥";
+ let p=document.getElementById("livePopup");
+ p.classList.add("show");
+ setTimeout(()=>p.classList.remove("show"),2000);
+}
+setTimeout(showLive,3000);
+setInterval(showLive,4000);
 </script>
 
 </body>
